@@ -1,0 +1,148 @@
+import { useState, useEffect } from 'react';
+import { Box } from 'theme-ui';
+import { useMkrBalance } from 'modules/mkr/hooks/useMkrBalance';
+import { Delegate } from '../../types';
+import { BoxWithClose } from 'modules/app/components/BoxWithClose';
+import { InputDelegateMkr } from './InputDelegateMkr';
+import { ApprovalContent } from './Approval';
+import { TxDisplay } from './TxDisplay';
+import { ConfirmContent } from './Confirm';
+import { useAnalytics } from 'modules/app/client/analytics/useAnalytics';
+import { ANALYTICS_PAGES } from 'modules/app/client/analytics/analytics.constants';
+import { useTokenAllowance } from 'modules/web3/hooks/useTokenAllowance';
+import { useDelegateLock } from 'modules/delegates/hooks/useDelegateLock';
+import { useApproveUnlimitedToken } from 'modules/web3/hooks/useApproveUnlimitedToken';
+import { useAccount } from 'modules/app/hooks/useAccount';
+import { BigNumber } from 'ethers';
+import { parseUnits } from 'ethers/lib/utils';
+import { Tokens } from 'modules/web3/constants/tokens';
+import { formatValue } from 'lib/string';
+import DelegateAvatarName from '../DelegateAvatarName';
+import { DialogContent, DialogOverlay } from 'modules/app/components/Dialog';
+
+type Props = {
+  isOpen: boolean;
+  onDismiss: () => void;
+  delegate: Delegate;
+  mutateTotalStaked: () => void;
+  mutateMKRDelegated: () => void;
+  title?: string;
+};
+
+export const DelegateModal = ({
+  isOpen,
+  onDismiss,
+  delegate,
+  mutateTotalStaked,
+  mutateMKRDelegated,
+  title = 'Deposit into delegate contract'
+}: Props): JSX.Element => {
+  const { trackButtonClick } = useAnalytics(ANALYTICS_PAGES.DELEGATES);
+  const { account } = useAccount();
+
+  const voteDelegateAddress = delegate.voteDelegateAddress;
+  const [mkrToDeposit, setMkrToDeposit] = useState<BigNumber>(BigNumber.from(0));
+  const [confirmStep, setConfirmStep] = useState(false);
+
+  const { data: mkrBalance, mutate: mutateMkrBalance } = useMkrBalance(account);
+
+  const { data: mkrAllowance, mutate: mutateTokenAllowance } = useTokenAllowance(
+    Tokens.MKR,
+    parseUnits('100000000'),
+    account,
+    voteDelegateAddress
+  );
+
+  const { approve, tx: approveTx, setTxId: resetApprove } = useApproveUnlimitedToken(Tokens.MKR);
+
+  const { lock, tx: lockTx, setTxId: resetLock } = useDelegateLock(voteDelegateAddress);
+
+  const [tx, resetTx] = mkrAllowance ? [lockTx, resetLock] : [approveTx, resetApprove];
+
+  const onClose = () => {
+    trackButtonClick('closeDelegateModal');
+    resetTx(null);
+    onDismiss();
+  };
+
+  useEffect(() => {
+    // Reset the confirmation step
+    setConfirmStep(false);
+  }, [isOpen]);
+
+  return (
+    <>
+      <DialogOverlay isOpen={isOpen} onDismiss={onClose}>
+        <DialogContent aria-label="Delegate modal" widthDesktop="580px">
+          <BoxWithClose close={onClose}>
+            <Box>
+              {tx ? (
+                <TxDisplay
+                  tx={tx}
+                  setTxId={resetTx}
+                  onDismiss={onClose}
+                  title={`Delegating to ${delegate.name}`}
+                  description={`Congratulations, you delegated ${formatValue(
+                    mkrToDeposit,
+                    'wad',
+                    6
+                  )} HAL to ${delegate.name}.`}
+                >
+                  <Box sx={{ textAlign: 'left', margin: '0 auto', p: 3 }}>
+                    <DelegateAvatarName delegate={delegate} />
+                  </Box>
+                </TxDisplay>
+              ) : (
+                <>
+                  {mkrAllowance ? (
+                    confirmStep ? (
+                      <ConfirmContent
+                        mkrToDeposit={mkrToDeposit}
+                        delegate={delegate}
+                        onClick={() => {
+                          lock(mkrToDeposit, {
+                            mined: () => {
+                              mutateTotalStaked();
+                              mutateMKRDelegated();
+                              mutateMkrBalance();
+                            }
+                          });
+                        }}
+                        onBack={() => setConfirmStep(false)}
+                      />
+                    ) : (
+                      <InputDelegateMkr
+                        title={title}
+                        description="Input the amount of HAL to deposit into the delegate contract."
+                        onChange={setMkrToDeposit}
+                        balance={mkrBalance}
+                        buttonLabel="Delegate HAL"
+                        onClick={() => setConfirmStep(true)}
+                        showAlert={true}
+                      />
+                    )
+                  ) : (
+                    <ApprovalContent
+                      onClick={() =>
+                        approve(voteDelegateAddress, {
+                          mined: () => {
+                            mutateTokenAllowance();
+                          }
+                        })
+                      }
+                      title={'Approve Delegate Contract'}
+                      buttonLabel={'Approve Delegate Contract'}
+                      description={
+                        'Approve the transfer of HAL tokens to the delegate contract to deposit your HAL.'
+                      }
+                    />
+                  )}
+                </>
+              )}
+            </Box>
+          </BoxWithClose>
+        </DialogContent>
+      </DialogOverlay>
+    </>
+  );
+};

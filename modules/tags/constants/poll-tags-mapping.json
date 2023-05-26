@@ -1,0 +1,93 @@
+{
+  "1": [
+    "risk-parameter",
+    "misc-governance"
+  ],
+  "2": [
+    "risk-parameter",
+    "high-impact",
+    "misc-governance"
+  ],
+  "3": [
+    "greenlight",
+    "risk-parameter",
+    "misc-governance"
+  ],
+  "4": [
+    "risk-parameter",
+    "misc-governance"
+  ],
+  "5": [
+    "greenlight"
+  ],
+  "6": [
+    "greenlight",
+    "risk-parameter",
+    "misc-governance"
+  ],
+  "7": [
+    "greenlight"
+  ],
+  "8": [
+    "greenlight"
+  ],
+  "9": [
+    "greenlight",
+    "risk-parameter",
+    "misc-governance"
+  ],
+  "10": [
+    "risk-parameter"
+  ],
+  "11": [
+    "risk-parameter"
+  ],
+  "12": [
+    "risk-parameter"
+  ],
+  "13": [
+    "misc-governance"
+  ],
+  "14": [
+    "misc-governance"
+  ],
+  "15": [
+    "greenlight",
+    "risk-parameter",
+    "misc-governance"
+  ],
+  "16": [
+    "risk-parameter"
+  ],
+  "17": [
+    "risk-parameter"
+  ],
+  "18": [
+    "greenlight",
+    "risk-parameter",
+    "misc-governance"
+  ],
+  "19": [
+    "oracle"
+  ],
+  "20": [
+    "greenlight",
+    "risk-parameter",
+    "misc-governance"
+  ],
+  "21": [
+    "oracle"
+  ],
+  "22": [
+    "greenlight",
+    "risk-parameter",
+    "misc-governance"
+  ],
+  "23": [
+    "oracle",
+    "oracle-feed"
+  ],
+  "24": [
+    "risk-parameter"
+  ]
+}

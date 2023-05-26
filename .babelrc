@@ -1,0 +1,18 @@
+{
+    "presets": [
+      [
+        "next/babel",
+        {
+          "preset-react": {
+            "importSource": "@theme-ui/core", // or "@theme-ui/core"
+            "runtime": "automatic", // Change to automatic when v0.10.0 of theme-ui
+            "throwIfNamespace": false
+          }
+        }
+      ]
+    ],
+    "plugins": [
+      "inline-react-svg",
+      "superjson-next"
+    ]
+}
